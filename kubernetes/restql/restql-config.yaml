@@ -1,0 +1,19 @@
+apiVersion: v1
+data:
+  restql.yml: |
+    mappings:
+      rmgrSupperPanel: http://resource-manager.wisecloud-controller:9908/api/board/supper/panel
+      rmgrSupperTeamStat: http://resource-manager.wisecloud-controller:9908/api/board/supper/stat/teams
+      rmgrSupperAuditlogs: http://resource-manager.wisecloud-controller:9908/api/board/supper/stat/audit-logs
+      rmgrSupperClusterStat: http://resource-manager.wisecloud-controller:9908/api/board/supper/stat/clusters
+      rmgrSupperComponents: http://resource-manager.wisecloud-controller:9908/api/board/supper/components
+      rmgrGenernalPanel: http://resource-manager.wisecloud-controller:9908/api/board/general/panel/:tenant
+      rmgrGenernalBuilds: http://resource-manager.wisecloud-controller:9908/api/board/general/builds/:tenant
+      rmgrGenernalTeamInfo: http://resource-manager.wisecloud-controller:9908/api/board/general/teams/:tenant/information
+      rmgrGenernalTeamQuota: http://resource-manager.wisecloud-controller:9908/api/board/general/teams/:tenant/quota
+      catalogue: http://orchestration.wisecloud-controller:9914/api/catalogs/tenants/:tenant/count
+      orchSupperStat: http://orchestration.wisecloud-controller:9902/api/stat
+      orchGeneralStat: http://orchestration.wisecloud-controller:9902/api/stat/teams/:tenant
+kind: ConfigMap
+metadata:
+  name: restql-config

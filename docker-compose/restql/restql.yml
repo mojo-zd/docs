@@ -1,0 +1,3 @@
+mappings:
+  resource-manager: "http://10.100.64.109:9908/api/environments"
+  orch: "http://10.96.95.4:9902/api/:tenant/application?currentPage=1&pageSize=16"

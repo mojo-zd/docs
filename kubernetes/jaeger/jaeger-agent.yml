@@ -1,0 +1,179 @@
+# jaeger collector
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-collector
+  name: jaeger-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      component: jaeger-collector
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: jaeger-collector
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: agent-secret
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: elasticsearch
+        args:
+        - --es.server-urls=http://$(ES_URL):$(ES_PORT)
+        name: collector
+        image: jaegertracing/jaeger-collector:1.18.0
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-collector
+  name: jaeger-collector
+spec:
+  ports:
+  - name: tcp-14269-14269 # admin server port
+    port: 14269
+    protocol: TCP
+    targetPort: 14269
+  - name: tcp-14268-14268 # http server port
+    port: 14268
+    protocol: TCP
+    targetPort: 14268
+  - name: tcp-14250-14250 # rpc server port
+    port: 14250
+    protocol: TCP
+    targetPort: 14250
+  selector:
+    app: jaeger
+    component: jaeger-collector
+  type: ClusterIP
+---
+# jaeger agent
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-agent
+  name: jaeger-agent
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+      component: jaeger-agent
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: jaeger-agent
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: agent-secret
+        env:
+        - name: CLUSTER
+          value: dev
+        args:
+        - --jaeger.tags=cluster=$(CLUSTER), tenant=$(TENANT)
+        - --reporter.grpc.host-port=dns:///jaeger-collector.wisecloud-agent.svc:14250
+        name: agent
+        image: jaegertracing/jaeger-agent:1.18.0
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-agent
+  name: jaeger-agent
+spec:
+  ports:
+  - name: udp-5775-5775
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: udp-6831-6831
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: udp-6832-6832
+    port: 6832
+    protocol: UDP
+    targetPort: 6832
+  - name: tcp-5778-5778
+    port: 5778
+    protocol: TCP
+    targetPort: 5778
+  selector:
+    app: jaeger
+    component: jaeger-agent
+  type: ClusterIP
+---
+# jaeger query
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-query
+  name: jaeger-query
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+      component: jaeger-query
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        component: jaeger-query
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: wisecloud-config
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: elasticsearch
+        - name: JAEGER_AGENT_HOST
+          value: jaeger-agent.wisecloud-agent
+        args:
+        - --es.server-urls=http://$(ES_URL):$(ES_PORT)
+        - --query.base-path=/jaeger  
+        name: query
+        image: jaegertracing/jaeger-query:1.18.0
+        imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jaeger
+    component: jaeger-query
+  name: jaeger-query
+spec:
+  ports:
+  - name: tcp-16686-16686
+    port: 16686
+    protocol: TCP
+    targetPort: 16686
+  - name: tcp-16687-16687
+    port: 16687
+    protocol: TCP
+    targetPort: 16687
+  selector:
+    app: jaeger
+    component: jaeger-query
+  type: ClusterIP

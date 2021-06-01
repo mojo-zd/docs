@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.wise2c.service: restql
+    io.wise2c.stack: wisecloud-controller
+  name: restql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.wise2c.service: restql
+      io.wise2c.stack: wisecloud-controller
+  template:
+    metadata:
+      labels:
+        io.wise2c.service: restql
+        io.wise2c.stack: wisecloud-controller
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: "-Drestql-config-file=/etc/restql/restql.yml"
+        - name: RESTQL_QUERY_RESOURCE_TIMEOUT
+          value: 10s
+        image: b2wdigital/restql-http:3.7.4
+        imagePullPolicy: IfNotPresent
+        name: restql
+        volumeMounts:
+        - mountPath: /etc/restql/restql.yml
+          name: mapping
+          subPath: restql.yml
+        resources:
+          limits:
+            cpu: 300m
+            memory: 300Mi
+          requests:
+            cpu: 30m
+            memory: 70Mi
+      dnsPolicy: ClusterFirstWithHostNet
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: restql.yml
+            path: restql.yml
+          name: restql-config
+        name: mapping
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.wise2c.service: restql
+    io.wise2c.stack: wisecloud-controller
+  name: restql
+spec:
+  ports:
+  - port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    io.wise2c.service: restql
+    io.wise2c.stack: wisecloud-controller
+  type: ClusterIP

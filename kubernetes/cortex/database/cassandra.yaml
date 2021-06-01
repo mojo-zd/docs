@@ -1,0 +1,88 @@
+apiVersion: cassandraoperator.instaclustr.com/v1alpha1
+kind: CassandraDataCenter
+metadata:
+  name: test-dc-cassandra
+  labels:
+    app: cassandra
+spec:
+  nodes: 3
+  racks:
+    - name: "west1-b"
+      labels:
+        failure-domain.beta.kubernetes.io/zone: europe-west1-b
+    - name: "west1-c"
+      labels:
+        failure-domain.beta.kubernetes.io/zone: europe-west1-c
+    - name: "west1-a"
+      labels:
+        failure-domain.beta.kubernetes.io/zone: europe-west1-a
+  cassandraImage: registry.cn-hangzhou.aliyuncs.com/mojo/cassandra:3.11.5
+  sidecarImage: registry.cn-hangzhou.aliyuncs.com/mojo/cassandra-sidecar:latest
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+    - name: regcred
+  backupSecretVolumeSource:
+    secretName: gcp-auth-reference
+    type: array
+    items:
+      - key: gcp.json
+        path: gcp.json
+  sidecarEnv:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/tmp/backup-creds/gcp.json"
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: backup-secrets
+          key: awsaccesskeyid
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: backup-secrets
+          key: awssecretaccesskey
+    - name: AWS_REGION
+      valueFrom:
+        secretKeyRef:
+          name: backup-secrets
+          key: awsregion
+    - name: AZURE_STORAGE_ACCOUNT
+      valueFrom:
+        secretKeyRef:
+          name: backup-secrets
+          key: azurestorageaccount
+    - name: AZURE_STORAGE_KEY
+      valueFrom:
+        secretKeyRef:
+          name: backup-secrets
+          key: azurestoragekey
+  userConfigMapVolumeSource:
+    # example from doc/providers/pks.md
+    # the name of the ConfigMap
+    name: concurrent-data
+    # ConfigMap keys -> file paths (relative to /etc/cassandra)
+    items:
+      - key: 100-concurrent-yaml
+        path: cassandra.yaml.d/100-concurrent.yaml
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      memory: 1Gi
+  sidecarResources:
+    limits:
+      memory: 512Mi
+    requests:
+      memory: 512Mi
+
+  dataVolumeClaimSpec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi
+
+  prometheusSupport: false
+  optimizeKernelParams: true
+  serviceAccountName: cassandra-performance
+  # Needed to run on AKS
+  fsGroup: 999

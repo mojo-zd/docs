@@ -1,0 +1,208 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: prometheus
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  alert-manager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: smtp.exmail.qq.com:465
+      smtp_from: mojo@wise2c.com
+      smtp_auth_username: mojo@wise2c.com
+      smtp_auth_password: xxxx
+      smtp_require_tls: false
+    route:
+      receiver: email
+      group_by:
+      - alertname
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      routes:
+      - match:
+          service: files
+        receiver: web.hook
+    inhibit_rules:
+    - source_match:
+        severity: critical
+      target_match:
+        severity: warning
+      equal:
+      - alertname
+      - dev
+      - instance
+    receivers:
+    - name: email
+      email_configs:
+      - send_resolved: true
+        to: 490929728@qq.com
+    - name: 'web.hook'
+      webhook_configs:
+      - url: 'http://127.0.0.1:5001/'  
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s
+      evaluation_interval: 15s
+      external_labels:
+        datacenter: "victoria-1"
+
+    remote_write:
+        - url: "http://prometheus.default.svc:8428/api/v1/write"
+          queue_config:
+            max_samples_per_send: 10000
+
+    scrape_configs:
+    - job_name: 'kubelet'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+    - job_name: 'exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        target_label: job
+      - source_labels: [__meta_kubernetes_service_annotationpresent_prometheus_io_scrape]
+        regex: true
+        action: keep
+    - job_name: 'etcd'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name]
+        action: keep
+        regex: kube-system;etcd-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  ports:
+  - name: prometheus
+    port: 9090
+    nodePort: 30001
+    protocol: TCP
+    targetPort: 9090
+  - name: victoria
+    port: 8428
+    nodePort: 30002
+    protocol: TCP
+    targetPort: 8428
+  - name: grafana
+    port: 3000
+    nodePort: 30003
+    protocol: TCP
+    targetPort: 3000
+  type: NodePort
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccount: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.11.0
+        ports:
+        - containerPort: 9090
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.enable-lifecycle"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention.time=180h"
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: prom-config
+      - name: alert-manager
+        image: prom/alertmanager:v0.18.0
+        ports:
+        - containerPort: 9093
+        args:
+        - "--config.file=/etc/alert-manager/config.yml"
+        volumeMounts:
+        - mountPath: /etc/alert-manager
+          name: alert-config
+      - name: victoria
+        image: victoriametrics/victoria-metrics:v1.20.1
+        ports:
+        - containerPort: 8428
+      - name: grafana
+        image: grafana/grafana:6.2.4
+        ports:
+        - containerPort: 3000
+      volumes:
+      - name: alert-config
+        configMap:
+          items:
+            - key: alert-manager.yml
+              path: config.yml
+          name: config
+      - name: prom-config
+        configMap:
+          name: config
+          items:
+            - key: prometheus.yml
+              path: prometheus.yml

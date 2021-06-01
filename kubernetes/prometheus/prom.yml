@@ -1,0 +1,563 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: prometheus
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  init-record.rules: |
+    groups:
+    - name: k8s.rules
+      rules:
+      - expr: |
+          sum(rate(container_cpu_usage_seconds_total{job="kubelet", image!="", container_name!=""}[5m])) by (namespace)
+        record: namespace:container_cpu_usage_seconds_total:sum_rate
+      - expr: |
+          sum by (namespace, pod_name, container_name) (
+            rate(container_cpu_usage_seconds_total{job="kubelet", image!="", container_name!=""}[5m])
+          )
+        record: namespace_pod_name_container_name:container_cpu_usage_seconds_total:sum_rate
+      - expr: |
+          sum(container_memory_usage_bytes{job="kubelet", image!="", container_name!=""}) by (namespace)
+        record: namespace:container_memory_usage_bytes:sum
+      - expr: |
+          sum by (namespace, label_name) (
+            sum(rate(container_cpu_usage_seconds_total{job="kubelet", image!="", container_name!=""}[5m])) by (namespace, pod_name)
+          * on (namespace, pod_name) group_left(label_name)
+            label_replace(kube_pod_labels{job="kube-state-metrics"}, "pod_name", "$1", "pod", "(.*)")
+          )
+        record: namespace_name:container_cpu_usage_seconds_total:sum_rate
+      - expr: |
+          sum by (namespace, label_name) (
+            sum(container_memory_usage_bytes{job="kubelet",image!="", container_name!=""}) by (pod_name, namespace)
+          * on (namespace, pod_name) group_left(label_name)
+            label_replace(kube_pod_labels{job="kube-state-metrics"}, "pod_name", "$1", "pod", "(.*)")
+          )
+        record: namespace_name:container_memory_usage_bytes:sum
+      - expr: |
+          sum by (namespace, label_name) (
+            sum(kube_pod_container_resource_requests_memory_bytes{job="kube-state-metrics"}) by (namespace, pod)
+          * on (namespace, pod) group_left(label_name)
+            label_replace(kube_pod_labels{job="kube-state-metrics"}, "pod_name", "$1", "pod", "(.*)")
+          )
+        record: namespace_name:kube_pod_container_resource_requests_memory_bytes:sum
+      - expr: |
+          sum by (namespace, label_name) (
+            sum(kube_pod_container_resource_requests_cpu_cores{job="kube-state-metrics"} and on(pod) kube_pod_status_scheduled{condition="true"}) by (namespace, pod)
+          * on (namespace, pod) group_left(label_name)
+            label_replace(kube_pod_labels{job="kube-state-metrics"}, "pod_name", "$1", "pod", "(.*)")
+          )
+        record: namespace_name:kube_pod_container_resource_requests_cpu_cores:sum
+    - name: kube-scheduler.rules
+      rules:
+      - expr: |
+          histogram_quantile(0.99, sum(rate(scheduler_e2e_scheduling_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.99"
+        record: cluster_quantile:scheduler_e2e_scheduling_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.99, sum(rate(scheduler_scheduling_algorithm_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.99"
+        record: cluster_quantile:scheduler_scheduling_algorithm_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.99, sum(rate(scheduler_binding_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.99"
+        record: cluster_quantile:scheduler_binding_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.9, sum(rate(scheduler_e2e_scheduling_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.9"
+        record: cluster_quantile:scheduler_e2e_scheduling_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.9, sum(rate(scheduler_scheduling_algorithm_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.9"
+        record: cluster_quantile:scheduler_scheduling_algorithm_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.9, sum(rate(scheduler_binding_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.9"
+        record: cluster_quantile:scheduler_binding_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.5, sum(rate(scheduler_e2e_scheduling_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.5"
+        record: cluster_quantile:scheduler_e2e_scheduling_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.5, sum(rate(scheduler_scheduling_algorithm_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.5"
+        record: cluster_quantile:scheduler_scheduling_algorithm_latency:histogram_quantile
+      - expr: |
+          histogram_quantile(0.5, sum(rate(scheduler_binding_latency_microseconds_bucket{job="kube-scheduler"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.5"
+        record: cluster_quantile:scheduler_binding_latency:histogram_quantile
+    - name: kube-apiserver.rules
+      rules:
+      - expr: |
+          histogram_quantile(0.99, sum(rate(apiserver_request_latencies_bucket{job="apiserver"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.99"
+        record: cluster_quantile:apiserver_request_latencies:histogram_quantile
+      - expr: |
+          histogram_quantile(0.9, sum(rate(apiserver_request_latencies_bucket{job="apiserver"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.9"
+        record: cluster_quantile:apiserver_request_latencies:histogram_quantile
+      - expr: |
+          histogram_quantile(0.5, sum(rate(apiserver_request_latencies_bucket{job="apiserver"}[5m])) without(instance, pod)) / 1e+06
+        labels:
+          quantile: "0.5"
+        record: cluster_quantile:apiserver_request_latencies:histogram_quantile
+    - name: node.rules
+      rules:
+      - expr: sum(min(kube_pod_info) by (node))
+        record: ':kube_pod_info_node_count:'
+      - expr: |
+          max(label_replace(kube_pod_info{job="kube-state-metrics"}, "pod", "$1", "pod", "(.*)")) by (node, namespace, pod)
+        record: 'node_namespace_pod:kube_pod_info:'
+      - expr: |
+          count by (node) (sum by (node, cpu) (
+            node_cpu_seconds_total{job="node-exporter"}
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          ))
+        record: node:node_num_cpu:sum
+      - expr: |
+          1 - avg(rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m]))
+        record: :node_cpu_utilisation:avg1m
+      - expr: |
+          1 - avg by (node) (
+            rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[1m])
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:)
+        record: node:node_cpu_utilisation:avg1m
+      - expr: |
+          node:node_cpu_utilisation:avg1m
+            *
+          node:node_num_cpu:sum
+            /
+          scalar(sum(node:node_num_cpu:sum))
+        record: node:cluster_cpu_utilisation:ratio
+      - expr: |
+          sum(node_load1{job="node-exporter"})
+          /
+          sum(node:node_num_cpu:sum)
+        record: ':node_cpu_saturation_load1:'
+      - expr: |
+          sum by (node) (
+            node_load1{job="node-exporter"}
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+          /
+          node:node_num_cpu:sum
+        record: 'node:node_cpu_saturation_load1:'
+      - expr: |
+          1 -
+          sum(node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+          /
+          sum(node_memory_MemTotal_bytes{job="node-exporter"})
+        record: ':node_memory_utilisation:'
+      - expr: |
+          sum(node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+        record: :node_memory_MemFreeCachedBuffers_bytes:sum
+      - expr: |
+          sum(node_memory_MemTotal_bytes{job="node-exporter"})
+        record: :node_memory_MemTotal_bytes:sum
+      - expr: |
+          sum by (node) (
+            (node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+            * on (namespace, pod) group_left(node)
+              node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_memory_bytes_available:sum
+      - expr: |
+          sum by (node) (
+            node_memory_MemTotal_bytes{job="node-exporter"}
+            * on (namespace, pod) group_left(node)
+              node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_memory_bytes_total:sum
+      - expr: |
+          (node:node_memory_bytes_total:sum - node:node_memory_bytes_available:sum)
+          /
+          node:node_memory_bytes_total:sum
+        record: node:node_memory_utilisation:ratio
+      - expr: |
+          (node:node_memory_bytes_total:sum - node:node_memory_bytes_available:sum)
+          /
+          scalar(sum(node:node_memory_bytes_total:sum))
+        record: node:cluster_memory_utilisation:ratio
+      - expr: |
+          1e3 * sum(
+            (rate(node_vmstat_pgpgin{job="node-exporter"}[1m])
+          + rate(node_vmstat_pgpgout{job="node-exporter"}[1m]))
+          )
+        record: :node_memory_swap_io_bytes:sum_rate
+      - expr: |
+          1 -
+          sum by (node) (
+            (node_memory_MemFree_bytes{job="node-exporter"} + node_memory_Cached_bytes{job="node-exporter"} + node_memory_Buffers_bytes{job="node-exporter"})
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+          /
+          sum by (node) (
+            node_memory_MemTotal_bytes{job="node-exporter"}
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: 'node:node_memory_utilisation:'
+      - expr: |
+          1 - (node:node_memory_bytes_available:sum / node:node_memory_bytes_total:sum)
+        record: 'node:node_memory_utilisation_2:'
+      - expr: |
+          1e3 * sum by (node) (
+            (rate(node_vmstat_pgpgin{job="node-exporter"}[1m])
+          + rate(node_vmstat_pgpgout{job="node-exporter"}[1m]))
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_memory_swap_io_bytes:sum_rate
+      - expr: |
+          avg(irate(node_disk_io_time_seconds_total{job="node-exporter",device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m]))
+        record: :node_disk_utilisation:avg_irate
+      - expr: |
+          avg by (node) (
+            irate(node_disk_io_time_seconds_total{job="node-exporter",device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m])
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_disk_utilisation:avg_irate
+      - expr: |
+          avg(irate(node_disk_io_time_weighted_seconds_total{job="node-exporter",device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m]) / 1e3)
+        record: :node_disk_saturation:avg_irate
+      - expr: |
+          avg by (node) (
+            irate(node_disk_io_time_weighted_seconds_total{job="node-exporter",device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+"}[1m]) / 1e3
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_disk_saturation:avg_irate
+      - expr: |
+          max by (namespace, pod, device) ((node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+          - node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"})
+          / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"})
+        record: 'node:node_filesystem_usage:'
+      - expr: |
+          max by (namespace, pod, device) (node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"})
+        record: 'node:node_filesystem_avail:'
+      - expr: |
+          sum(irate(node_network_receive_bytes_total{job="node-exporter",device!~"veth.+"}[1m])) +
+          sum(irate(node_network_transmit_bytes_total{job="node-exporter",device!~"veth.+"}[1m]))
+        record: :node_net_utilisation:sum_irate
+      - expr: |
+          sum by (node) (
+            (irate(node_network_receive_bytes_total{job="node-exporter",device!~"veth.+"}[1m]) +
+            irate(node_network_transmit_bytes_total{job="node-exporter",device!~"veth.+"}[1m]))
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_net_utilisation:sum_irate
+      - expr: |
+          sum(irate(node_network_receive_drop_total{job="node-exporter",device!~"veth.+"}[1m])) +
+          sum(irate(node_network_transmit_drop_total{job="node-exporter",device!~"veth.+"}[1m]))
+        record: :node_net_saturation:sum_irate
+      - expr: |
+          sum by (node) (
+            (irate(node_network_receive_drop_total{job="node-exporter",device!~"veth.+"}[1m]) +
+            irate(node_network_transmit_drop_total{job="node-exporter",device!~"veth.+"}[1m]))
+          * on (namespace, pod) group_left(node)
+            node_namespace_pod:kube_pod_info:
+          )
+        record: node:node_net_saturation:sum_irate
+      - expr: |
+          max(
+            max(
+              kube_pod_info{job="kube-state-metrics", host_ip!=""}
+            ) by (node, host_ip)
+            * on (host_ip) group_right (node)
+            label_replace(
+              (max(node_filesystem_files{job="node-exporter", mountpoint="/"}) by (instance)), "host_ip", "$1", "instance", "(.*):.*"
+            )
+          ) by (node)
+        record: 'node:node_inodes_total:'
+      - expr: |
+          max(
+            max(
+              kube_pod_info{job="kube-state-metrics", host_ip!=""}
+            ) by (node, host_ip)
+            * on (host_ip) group_right (node)
+            label_replace(
+              (max(node_filesystem_files_free{job="node-exporter", mountpoint="/"}) by (instance)), "host_ip", "$1", "instance", "(.*):.*"
+            )
+          ) by (node)
+        record: 'node:node_inodes_free:'
+    - name: kube-prometheus-node-recording.rules
+      rules:
+      - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait"}[3m])) BY (instance)
+        record: instance:node_cpu:rate:sum
+      - expr: sum((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}))
+          BY (instance)
+        record: instance:node_filesystem_usage:sum
+      - expr: sum(rate(node_network_receive_bytes_total[3m])) BY (instance)
+        record: instance:node_network_receive_bytes:rate:sum
+      - expr: sum(rate(node_network_transmit_bytes_total[3m])) BY (instance)
+        record: instance:node_network_transmit_bytes:rate:sum
+      - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait"}[5m])) WITHOUT
+          (cpu, mode) / ON(instance) GROUP_LEFT() count(sum(node_cpu_seconds_total) BY
+          (instance, cpu)) BY (instance)
+        record: instance:node_cpu:ratio
+      - expr: sum(rate(node_cpu_seconds_total{mode!="idle",mode!="iowait"}[5m]))
+        record: cluster:node_cpu:sum_rate5m
+      - expr: cluster:node_cpu_seconds_total:rate5m / count(sum(node_cpu_seconds_total)
+          BY (instance, cpu))
+        record: cluster:node_cpu:ratio
+  init-alert-rules.rules: |
+    groups:
+    - name: NodeAlert
+      rules:
+      - alert: NodeMemoryNotEnough
+        annotations:
+          description: memory usage rate great than 85%
+          summary: memory usage very high, instance is [{{$labels.instance}}]
+        expr: 1-(node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes
+          < 0.15
+        for: 5m
+        labels:
+          service: node
+          severity: critical
+          type: kubernetes
+      - alert: NodeDiskNotEnough
+        annotations:
+          description: disk space less than 25% , instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+          summary: disk space less than 25%, instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+        expr: avg(node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+          < 0.25) by (device,instance)
+        for: 5m
+        labels:
+          service: node
+          severity: warning
+          type: kubernetes
+      - alert: CPUHigh
+        annotations:
+          description: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+          summary: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          service: node
+          severity: critical
+          type: kubernetes
+  alert-manager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: smtp.exmail.qq.com:465
+      smtp_from: mojo_ma@wise2c.com
+      smtp_auth_username: mojo_ma@wise2c.com
+      smtp_auth_password: Qyyx_183
+      smtp_require_tls: false
+    route:
+      receiver: system-receiver
+      group_by:
+      - alertname
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 30m
+      routes:
+      - receiver: custom-webhook
+        match_re:
+          service: ^(?:node)$
+    inhibit_rules:
+    - source_match:
+        severity: critical
+      target_match:
+        severity: warning
+      equal:
+      - alertname
+      - dev
+      - instance
+    receivers:
+    - name: custom-webhook
+      email_configs:
+      - send_resolved: true
+        to: 490929728@qq.com
+    - name: system-receiver
+      webhook_configs:
+      - url: http://127.0.0.1:16010/api/webhooks
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s
+      evaluation_interval: 15s
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - localhost:9093
+    rule_files:
+    - /etc/alert-rules/*.rules
+    - /etc/alert-init-rules/*.rules
+    scrape_configs:
+    - job_name: 'kubelet'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+    - job_name: 'exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        target_label: job
+      - source_labels: [__meta_kubernetes_service_annotationpresent_prometheus_io_scrape]
+        regex: true
+        action: keep
+    - job_name: 'etcd'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name]
+        action: keep
+        regex: kube-system;etcd-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  ports:
+  - name: prometheus
+    port: 9090
+    nodePort: 30001
+    protocol: TCP
+    targetPort: 9090
+  - name: alert-manager
+    port: 9093
+    nodePort: 30003
+    protocol: TCP
+    targetPort: 9093
+  type: NodePort
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccount: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.11.0
+        ports:
+        - containerPort: 9090
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.enable-lifecycle"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention.time=180h"
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: prom-config
+        - mountPath: /etc/alert-rules
+          name: alert-rules
+        - mountPath: /etc/alert-init-rules
+          name: init-alert-rules
+        - mountPath: /etc/record-init-rules
+          name: init-record-rules
+      - name: alert-manager
+        image: prom/alertmanager:v0.18.0
+        ports:
+        - containerPort: 9093
+        args:
+        - "--config.file=/etc/alert-manager/config.yml"
+        volumeMounts:
+        - mountPath: /etc/alert-manager
+          name: alert-config
+      volumes:
+      - name: alert-rules
+        hostPath:
+          path: /etc/alert-rules
+      - name: init-record-rules
+        configMap:
+          items:
+            - key: init-record.rules
+              path: init-record.rules
+          name: config
+      - name: init-alert-rules
+        configMap:
+          items:
+            - key: init-alert-rules.rules
+              path: init-rules.rules
+          name: config
+      - name: alert-config
+        configMap:
+          items:
+            - key: alert-manager.yml
+              path: config.yml
+          name: config
+      - name: prom-config
+        configMap:
+          name: config
+          items:
+            - key: prometheus.yml
+              path: prometheus.yml

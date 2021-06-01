@@ -1,0 +1,73 @@
+version: '3'
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:6.2.4
+    ports:
+      - 3000:3000
+  consul:
+    container_name: consul
+    image: consul:latest
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+  cortex:
+    container_name: cortex
+    image: quay.io/cortexproject/cortex:master-3951361e
+    ports:
+      - 9009:9009
+    command:
+      - '-config.file=/single-process-config.yaml'
+      - '-ring.store=consul'
+      - '-consul.hostname=consul:8500'
+    volumes:
+      - ./single-process-config.yaml:/single-process-config.yaml
+    depends_on:
+      - consul
+  cortex1:
+    container_name: cortex1
+    image: quay.io/cortexproject/cortex:master-3951361e
+    ports:
+      - 9010:9009
+    command:
+      - '-config.file=/single-process-config.yaml'
+      - '-ring.store=consul'
+      - '-consul.hostname=consul:8500'
+    volumes:
+      - ./single-process-config.yaml:/single-process-config.yaml
+    depends_on:
+      - consul
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.11.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./rules:/etc/prometheus-rules
+    ports:
+      - 9090:9090
+    depends_on:
+      - cortex
+      - cadvisor
+  alert-manager:
+    container_name: alert-manager
+    image: prom/alertmanager:v0.18.0
+    command:
+      - '--config.file=/alertmanager/alertmanager.yml'
+      - '--storage.path=/data'
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager.yml:/alertmanager/alertmanager.yml
+  cadvisor:
+    container_name: cadvisor
+    image: google/cadvisor:v0.33.0
+    privileged: true
+    ports:
+      - 8180:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /dev/kmsg:/dev/kmsg
+      - /sys/fs/cgroup/cpu,cpuacct:/sys/fs/cgroup/cpu,cpuacct

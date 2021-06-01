@@ -1,0 +1,22 @@
+version: '3'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.8.0
+    container_name: kibana
+    environment:
+    - ELASTICSEARCH_HOSTS=http://es:9200
+    ports:
+    - 5601:5601
+    volumes:
+    - ./kibana.yml:/usr/share/kibana/config/kibana.yml
+    depends_on:
+    - elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: es
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9205:9200
+    volumes:
+    - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml

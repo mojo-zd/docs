@@ -1,0 +1,16 @@
+version: '2'
+services:
+  yapi-mongo:
+    container_name: db
+    image: mongo
+    ports:
+    - 27017:27017
+  yapi:
+    container_name: server
+    image: crper/yapi
+    ports:
+    - 3000:3000
+    depends_on:
+      - yapi-mongo
+    links:
+     - yapi-mongo

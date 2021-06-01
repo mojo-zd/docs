@@ -1,0 +1,38 @@
+    groups:
+    - name: NodeAlert
+        rules:
+        - alert: NodeMemoryNotEnough
+          annotations:
+            description: memory usage rate great than 85%，kubernets can't service for instance [{{$labels.instance}}]
+            summary: memory usage very high, instance is [{{$labels.instance}}]
+          expr: node:node_memory_bytes_available:sum / node:node_memory_bytes_total:sum
+            < 0.15
+          for: 5m
+          labels:
+            service: node
+            severity: critical
+            type: kubernetes
+        - alert: NodeDiskNotEnough
+          annotations:
+            description: disk space less than 25% , instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+            summary: disk space less than 25%, instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+          expr: avg(node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+            < 0.25) by (device,instance)
+          for: 5m
+          labels:
+            service: node
+            severity: warning
+            type: kubernetes
+        - alert: CPUHigh
+          annotations:
+            description: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+            summary: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+          expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+          for: 5m
+          labels:
+            service: node
+            severity: critical
+            type: kubernetes
+
+
+            192.168.0.37

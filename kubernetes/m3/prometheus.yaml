@@ -1,0 +1,300 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: prometheus
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  m3coordinator.yml: |
+    listenAddress:
+      value: "0.0.0.0:7201"
+    logging:
+      level: info
+    metrics:
+      scope:
+        prefix: "coordinator"
+      prometheus:
+        handlerPath: /metrics
+        listenAddress: 0.0.0.0:7203 # until https://github.com/m3db/m3/issues/682 is resolved
+      sanitization: prometheus
+      samplingRate: 1.0
+      extended: none
+    tagOptions:
+      idScheme: quoted
+    clusters:
+    - namespaces:
+      - namespace: default
+        retention: 48h
+        type: unaggregated
+      client:
+        config:
+          service:
+            env: default_env
+            zone: embedded
+            service: m3db
+            cacheDir: /var/lib/m3kv
+            etcdClusters:
+            - zone: embedded
+              endpoints:
+                - etcd-cluster.m3db.svc:2379
+        writeConsistencyLevel: majority
+        readConsistencyLevel: unstrict_majority
+  init-alert-rules.rules: |
+    groups:
+    - name: NodeAlert
+      rules:
+      - alert: NodeMemoryNotEnough
+        annotations:
+          description: memory usage rate great than 85%
+          summary: memory usage very high, instance is [{{$labels.instance}}]
+        expr: 1-(node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes
+          < 0.15
+        for: 5m
+        labels:
+          service: node
+          severity: critical
+          type: kubernetes
+      - alert: NodeDiskNotEnough
+        annotations:
+          description: disk space less than 25% , instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+          summary: disk space less than 25%, instance is [{{$labels.instance}}] device is [{{$labels.device}}]
+        expr: avg(node_filesystem_avail_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{fstype=~"ext[234]|btrfs|xfs|zfs"}
+          < 0.25) by (device,instance)
+        for: 5m
+        labels:
+          service: node
+          severity: warning
+          type: kubernetes
+      - alert: CPUHigh
+        annotations:
+          description: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+          summary: CPU usage rate very high, it keep on 5 minutes, instance [{{$labels.instance}}] over 85%
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          service: node
+          severity: critical
+          type: kubernetes
+  alert-manager.yml: |
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: smtp.exmail.qq.com:465
+      smtp_from: mojo_ma@wise2c.com
+      smtp_auth_username: mojo_ma@wise2c.com
+      smtp_auth_password: Qyyx_183
+      smtp_require_tls: false
+    route:
+      receiver: system-receiver
+      group_by:
+      - alertname
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 30m
+      routes:
+      - receiver: custom-webhook
+        match_re:
+          service: ^(?:node)$
+    inhibit_rules:
+    - source_match:
+        severity: critical
+      target_match:
+        severity: warning
+      equal:
+      - alertname
+      - dev
+      - instance
+    receivers:
+    - name: custom-webhook
+      email_configs:
+      - send_resolved: true
+        to: 490929728@qq.com
+    - name: system-receiver
+      webhook_configs:
+      - url: http://127.0.0.1:16010/api/webhooks
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s
+      evaluation_interval: 15s
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - localhost:9093
+    remote_write:
+    - url: "http://m3coordinator.m3db.svc.cluster.local:7201/api/v1/prom/remote/write"
+      write_relabel_configs:
+      - target_label: metrics_storage
+        replacement: m3db_remote
+    remote_read:
+    - url: http://m3coordinator.m3db.svc.cluster.local:7201/api/v1/prom/remote/read
+      read_recent: true
+    rule_files:
+    - /etc/alert-rules/*.rules
+    - /etc/alert-init-rules/*.rules
+    scrape_configs:
+    - job_name: 'kubelet'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+    - job_name: 'exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        target_label: job
+      - source_labels: [__meta_kubernetes_service_annotationpresent_prometheus_io_scrape]
+        regex: true
+        action: keep
+    - job_name: 'etcd'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name]
+        action: keep
+        regex: kube-system;etcd-exporter
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  ports:
+  - name: prometheus
+    port: 9090
+    nodePort: 30001
+    protocol: TCP
+    targetPort: 9090
+  - name: alert-manager
+    port: 9093
+    nodePort: 30003
+    protocol: TCP
+    targetPort: 9093
+  type: NodePort
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccount: prometheus
+      containers:
+      - name: prometheus
+        securityContext:
+          runAsUser: 0
+        image: prom/prometheus:v2.11.0
+        ports:
+        - containerPort: 9090
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.enable-lifecycle"
+        - "--storage.tsdb.path=/prometheus"
+        - "--storage.tsdb.retention.time=180h"
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: prom-config
+        - mountPath: /etc/alert-rules
+          name: alert-rules
+        - mountPath: /etc/alert-init-rules
+          name: init-alert-rules
+      - name: m3coordinator
+        image: quay.io/m3db/m3coordinator
+        ports:
+        - containerPort: 7201
+        volumeMounts:
+        - mountPath: /etc/m3coordinator
+          name: coordinator-config
+      - name: alert-manager
+        image: prom/alertmanager:v0.18.0
+        ports:
+        - containerPort: 9093
+        args:
+        - "--config.file=/etc/alert-manager/config.yml"
+        volumeMounts:
+        - mountPath: /etc/alert-manager
+          name: alert-config
+      volumes:
+      - name: coordinator-config
+        configMap:
+          items:
+          - key: m3coordinator.yml
+            path: m3coordinator.yml
+          name: config
+      - name: alert-rules
+        hostPath:
+          path: /etc/alert-rules
+      - name: init-alert-rules
+        configMap:
+          items:
+            - key: init-alert-rules.rules
+              path: init-rules.rules
+          name: config
+      - name: alert-config
+        configMap:
+          items:
+            - key: alert-manager.yml
+              path: config.yml
+          name: config
+      - name: prom-config
+        configMap:
+          name: config
+          items:
+            - key: prometheus.yml
+              path: prometheus.yml

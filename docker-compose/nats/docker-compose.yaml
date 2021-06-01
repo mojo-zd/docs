@@ -1,0 +1,67 @@
+version: '3'
+networks: 
+  main: 
+    driver: bridge
+    ipam: 
+      config: 
+        - subnet: 172.25.255.0/24
+      driver: default
+services: 
+  nats-main: 
+    container_name: nats-main
+    command: 
+      - "-D"
+      - "-auth"
+      - "mojo"
+      - "-p"
+      - "4222"
+      - "-cluster"
+      - "nats://172.25.255.10:6222"
+    expose:
+      - "6222"
+    image: nats:2.0.4
+    networks: 
+      main: 
+        ipv4_address: "172.25.255.10"
+    ports:
+      - "14222:4222"
+  nats-slave1: 
+    container_name: nats-slave1
+    command: 
+      - "-D"
+      - "-auth"
+      - "mojo"
+      - "-p"
+      - "4222"
+      - "-cluster"
+      - "nats://ruser:T0pS3cr3t@172.25.255.20:6222"
+      - "-routes"
+      - "nats://172.25.255.10:6222"
+    image: nats:2.0.4
+    expose:
+      - "6222"
+    networks: 
+      main: 
+        ipv4_address: "172.25.255.20"
+    ports:
+      - "24222:4222"
+  nats-slave2: 
+    container_name: nats-slave2
+    command: 
+      - "-D"
+      - "-auth"
+      - "mojo"
+      - "-p"
+      - "4222"
+      - "-cluster"
+      - "nats://ruser:T0pS3cr3t@172.25.255.30:6222"
+      - "-routes"
+      - "nats://172.25.255.10:6222"
+    image: nats:2.0.4
+    expose:
+      - "6222"
+    networks: 
+      main: 
+        ipv4_address: "172.25.255.30"
+    ports:
+      - "34222:4222"

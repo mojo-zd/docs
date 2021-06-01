@@ -1,0 +1,2 @@
+{ "index" : { "_index" : "test2", "_type" : "xx"}}
+{ "age" : 99, "name":"jack" }

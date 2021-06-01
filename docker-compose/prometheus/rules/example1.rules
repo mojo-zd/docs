@@ -1,0 +1,18 @@
+---
+groups:
+- name: "InstanceDown"
+  rules:
+  - alert: "InstanceDown"
+    for: "5m"
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      mail_smtp_password: "password"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down\
+        \ for more than 5 minutes."
+      mail_smtp_username: "username"
+      during: "5m"
+      value: "{{ $value }}"
+    expr: "up == 0"
+    labels:
+      severity: "page"
+      cluster: "kubernetes"

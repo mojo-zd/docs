@@ -1,0 +1,11 @@
+version: '3'
+services:
+  restql-http:
+    container_name: restql-http
+    image: b2wdigital/restql-http:latest
+    environment:
+    - JAVA_OPTS=-Drestql-config-file=/etc/restql/restql.yml
+    ports:
+    - 9000:9000
+    volumes:
+    - /root/restql/restql.yml:/etc/restql/restql.yml

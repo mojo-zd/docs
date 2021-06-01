@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: c
+    io.wise2c.service: c
+    io.wise2c.tenant: default
+  name: c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: c
+      io.wise2c.service: c
+      io.wise2c.tenant: default
+  template:
+    metadata:
+      labels:
+        app: c
+        io.wise2c.service: c
+        io.wise2c.tenant: default
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+      containers:
+      - env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: JAEGER_SERVICE_NAME
+          value: c.cache
+        image: nginx
+        imagePullPolicy: IfNotPresent
+        name: c
+        volumeMounts:
+        - mountPath: /etc/nginx/nginx.conf
+          name: setting
+          subPath: nginx.conf
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      restartPolicy: Always
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: default.conf
+            path: nginx.conf
+          name: nginx
+        name: setting

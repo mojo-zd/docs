@@ -1,0 +1,31 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: smtp.exmail.qq.com:465
+  smtp_from: mojo@wise2c.com
+  smtp_auth_username: mojo@wise2c.com
+  smtp_auth_password: xxxx
+  smtp_require_tls: false
+route:
+  receiver: email
+  group_by:
+  - alertname
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+inhibit_rules:
+- source_match:
+    severity: critical
+  target_match:
+    severity: warning
+  equal:
+  - alertname
+  - dev
+  - instance
+receivers:
+- name: email
+  email_configs:
+  - send_resolved: true
+    to: 490929728@qq.com
+- name: 'web.hook'
+  webhook_configs:
+  - url: 'http://127.0.0.1:5001/'

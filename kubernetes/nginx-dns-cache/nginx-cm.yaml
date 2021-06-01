@@ -1,0 +1,61 @@
+#daemon off;
+# user                        root root;
+# worker_processes            auto;
+# worker_cpu_affinity         auto;
+# worker_rlimit_nofile        523264;
+
+# events {
+#     use                     epoll;
+#     worker_connections      16384;
+#     multi_accept            on;
+# }
+
+http {
+
+    resolver 10.244.1.7;
+    resolver_timeout 10s;
+
+    upstream web.up {
+      server web.cache:8080;
+    }
+
+    server {
+
+      listen                        1000;
+      # server_name                   test.com;
+
+      # access_log                    off;
+
+      # for support ssl
+
+
+      # for support data zip
+
+
+      # for support backend server.
+      # ......default_backend...Web.....................X-Forwarded-For..................IP
+      #proxy_redirect                  off;
+
+      #proxy_next_upstream             error timeout invalid_header http_500 http_502 http_503 http_504;
+
+
+      # proxy_headers_hash_max_size     51200;
+      # proxy_headers_hash_bucket_size  6400;
+      # proxy_set_header                Host             $http_host;
+      # proxy_set_header                X-Real-IP        $remote_addr;
+      # proxy_set_header                X-Forwarded-For  $proxy_add_x_forwarded_for;
+      #....................................
+      # proxy_set_header Connection "";
+      # error_page   500 502 503 504  /50x.html;
+      # location = /50x.html {
+      #     root   html;
+      # }
+
+
+      location / {
+          proxy_pass   http://web.up/;
+      }
+    }
+}
+
+# kubectl create cm nginx --from-file=default.conf

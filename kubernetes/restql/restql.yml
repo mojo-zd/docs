@@ -1,0 +1,12 @@
+mappings:
+  rmgrSupperPanel: resource-manager.wisecloud-controller:9908/api/board/supper/panel
+  rmgrSupperTeamStat: resource-manager.wisecloud-controller:9908/api/board/supper/stat/teams
+  rmgrSupperAuditlogs: resource-manager.wisecloud-controller:9908/api/board/supper/stat/audit-logs
+  rmgrSupperClusterStat: resource-manager.wisecloud-controller:9908/api/board/supper/stat/clusters
+  rmgrSupperComponents: resource-manager.wisecloud-controller:9908/api/board/supper/components
+  rmgrGenernalPanel: resource-manager.wisecloud-controller:9908/api/board/general/panel/:tenant
+  rmgrGenernalBuilds: resource-manager.wisecloud-controller:9908/api/board/general/builds/:tenant
+  rmgrGenernalTeamInfo: resource-manager.wisecloud-controller:9908/api/board/general/teams/:tenant/information
+  rmgrGenernalTeamQuota: resource-manager.wisecloud-controller:9908/api/board/general/teams/:tenant/quota
+  orchSupperStat: orchestration.wisecloud-controller:9902/api/stat
+  orchGeneralStat: orchestration.wisecloud-controller:9902/api/stat/team/:tenant

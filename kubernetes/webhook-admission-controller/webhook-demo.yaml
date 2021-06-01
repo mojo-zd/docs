@@ -1,0 +1,74 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webhook
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webhook
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: webhook
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: webhook
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webhook
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: webhook
+  name: webhook
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook
+  template:
+    metadata:
+      labels:
+        app: webhook
+    spec:
+      containers:
+      - image: registry.cn-hangzhou.aliyuncs.com/mojo/wehbook:0.0.1
+        imagePullPolicy: Always
+        name: webhook
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: config
+      serviceAccount: webhook
+      volumes:
+      - name: config
+        secret:
+          secretName: example-com-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: webhook
+  name: webhook
+  namespace: default
+spec:
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: webhook

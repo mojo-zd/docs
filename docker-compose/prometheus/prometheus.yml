@@ -1,0 +1,40 @@
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    datacenter: 'victoria-1'
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alert-manager:9093
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+  - "/etc/prometheus-rules/*.rules"
+
+remote_write:
+    - url: "http://victoria:8428/api/v1/write"
+      queue_config:
+        max_samples_per_send: 10000
+#remote_read:
+#    - url: "http://10.0.0.127:9201/read"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  - job_name: 'cadvisor'
+
+    #scheme defaults to 'http'.
+    #metrics_path: '/federate'
+    static_configs:
+      - targets: ['cadvisor:8080']

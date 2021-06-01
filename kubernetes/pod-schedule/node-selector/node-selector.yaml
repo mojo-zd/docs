@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: proxy
+  name: proxy
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: proxy
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: proxy
+    spec:
+      nodeSelector:
+        disktype: ssd
+      containers:
+      - image: nginx
+        imagePullPolicy: Always
+        name: nginx

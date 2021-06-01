@@ -1,0 +1,29 @@
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.0
+    network_mode: host
+    ports:
+    - "2181:2181"
+    environment:
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CLIENT_PORT: 2181
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeeper_jaas.conf"
+    volumes:
+    - ./zookeeper.properties:/etc/kafka/zookeeper.properties
+    - ./zookeeper_jaas.conf:/etc/kafka/zookeeper_jaas.conf
+  kafka:
+    image: confluentinc/cp-kafka:5.4.0
+    network_mode: host
+    ports:
+    - "9092:9092"
+    volumes:
+    - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+    - ./server.properties:/etc/kafka/server.properties
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: 127.0.0.1:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+    # links:
+    # - zookeeper

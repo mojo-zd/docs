@@ -1,0 +1,200 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cortex-conf
+data:
+  cortex.conf: |
+    # Configuration for running Cortex in single-process mode.
+    # This should not be used in production.  It is only for getting started
+    # and development.
+
+    # Disable the requirement that every request to Cortex has a
+    # X-Scope-OrgID header. `fake` will be substituted in instead.
+    auth_enabled: false
+
+    server:
+      http_listen_port: 9009
+
+      # Configure the server to allow messages up to 100MB.
+      grpc_server_max_recv_msg_size: 104857600
+      grpc_server_max_send_msg_size: 104857600
+      grpc_server_max_concurrent_streams: 1000
+
+    distributor:
+      shard_by_all_labels: true
+      pool:
+        health_check_ingesters: true
+
+    ingester_client:
+      grpc_client_config:
+        # Configure the client to allow messages up to 100MB.
+        max_recv_msg_size: 104857600
+        max_send_msg_size: 104857600
+        use_gzip_compression: true
+
+    ingester:
+      lifecycler:
+        # The address to advertise for this ingester. Will be autodiscovered by
+        # looking up address on eth0 or en0; can be specified if this fails.
+        address: 127.0.0.1
+
+        # We want to start immediately and flush on shutdown.
+        join_after: 0
+        claim_on_rollout: false
+        final_sleep: 0s
+        num_tokens: 512
+
+        # Use an in memory ring store, so we don't need to launch a Consul.
+        ring:
+          kvstore:
+            store: consul
+          replication_factor: 3
+
+    # Use local storage - BoltDB for the index, and the filesystem for the chunks.
+    schema:
+      configs:
+      - from: 2020-01-20
+        store: boltdb
+        object_store: filesystem
+        schema: v10
+        index:
+          prefix: index_
+          period: 168h
+
+    storage:
+      boltdb:
+        directory: /tmp/cortex/index
+      filesystem:
+        directory: /tmp/cortex/chunks
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+spec:
+  selector:
+    matchLabels:
+      name: consul
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: consul
+    spec:
+      containers:
+      - name: consul
+        image: consul:0.7.1
+        imagePullPolicy: IfNotPresent
+        args:
+        - agent
+        - -ui
+        - -server
+        - -client=0.0.0.0
+        - -bootstrap
+        env:
+        - name: CHECKPOINT_DISABLE
+          value: "1"
+        ports:
+        - name: server-noscrape
+          containerPort: 8300
+        - name: serf-noscrape
+          containerPort: 8301
+        - name: client-noscrape
+          containerPort: 8400
+        - name: http-noscrape
+          containerPort: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+spec:
+  ports:
+  - name: http
+    port: 8500
+  selector:
+    name: consul
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cortex
+spec:
+  selector:
+    matchLabels:
+      name: cortex
+  replicas: 2
+  # Ingesters are not ready for at least 1 min
+  # after creation.  This has to be in sync with
+  # the ring timeout value, as this will stop a
+  # stampede of new ingesters if we should loose
+  # some.
+  minReadySeconds: 60
+  # Having maxSurge 0 and maxUnavailable 1 means
+  # the deployment will update one ingester at a time
+  # as it will have to stop one (making one unavailable)
+  # before it can start one (surge of zero)
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        name: cortex
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: name
+                  operator: In
+                  values:
+                  - cortex
+              topologyKey: "kubernetes.io/hostname"
+      # Give ingesters 40 minutes grace to flush chunks and exit cleanly.
+      # Service is available during this time, as long as we don't stop
+      # too many ingesters at once.
+      terminationGracePeriodSeconds: 2400
+      initContainers:
+      - name: init-consul
+        image: busybox
+        command: ['sh', '-c', 'until nslookup consul; do echo waiting for consul; sleep 2; done;']
+      containers:
+      - name: cortex
+        image: registry.cn-hangzhou.aliyuncs.com/mojo/cortex:v0.5.0-rc1
+        imagePullPolicy: IfNotPresent
+        args:
+        - -config.file=/etc/cortex/cortex.conf
+        - -ingester.join-after=30s
+        - -ring.store=consul
+        - -ingester.claim-on-rollout=true
+        - -consul.hostname=consul.default.svc.cluster.local:8500
+        ports:
+        - containerPort: 9009
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9009
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: cortex-config
+          mountPath: /etc/cortex
+      volumes:
+      - name: cortex-config
+        configMap:
+          name: cortex-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cortex
+spec:
+  ports:
+    - port: 9009
+  selector:
+    name: cortex

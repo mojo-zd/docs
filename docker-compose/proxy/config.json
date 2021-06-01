@@ -1,0 +1,9 @@
+{
+    "server":"xx.xx.xx.xx",
+    "server_port":8388,
+    "local_port":1080,
+    "password":"xxxxx!",
+    "method": "aes-128-cfb",
+    "timeout":600,
+    "fast_open":true
+}

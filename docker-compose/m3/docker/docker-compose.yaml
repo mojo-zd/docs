@@ -1,0 +1,12 @@
+# single node of m3db
+version: '3'
+services:
+  m3db:
+    container_name: m3db
+    image: quay.io/m3db/m3dbnode:latest
+    ports:
+    - 7201:7201
+    - 7203:7203
+    - 9003:9003
+    volumes:
+    - ./m3db_data:/var/lib/m3db

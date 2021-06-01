@@ -1,0 +1,133 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: prometheus
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval:     15s
+      evaluation_interval: 15s
+      external_labels:
+        datacenter: "victoria-1"
+
+    remote_write:
+      - url: "http://10.0.0.41:8428/api/v1/write"
+        queue_config:
+          max_samples_per_send: 10000
+      - url: "http://10.0.0.41:8429/api/v1/write"
+        queue_config:
+          max_samples_per_send: 10000
+    scrape_configs:
+    - job_name: 'kubelet'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+    - job_name: 'exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      scheme: http
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_endpoints_name]
+        target_label: job
+      - source_labels: [__meta_kubernetes_service_annotationpresent_prometheus_io_scrape]
+        regex: true
+        action: keep
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: prometheus
+  name: prometheus
+spec:
+  ports:
+  - name: prometheus
+    port: 9090
+    nodePort: 30001
+    protocol: TCP
+    targetPort: 9090
+  - name: grafana
+    port: 3000
+    nodePort: 30003
+    protocol: TCP
+    targetPort: 3000
+  type: NodePort
+  selector:
+    app: prometheus
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccount: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.10.0
+        ports:
+        - containerPort: 9090
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: config
+      - name: grafana
+        image: grafana/grafana:6.2.4
+        ports:
+        - containerPort: 3000
+      volumes:
+      - configMap:
+          name: prometheus-config
+        name: config

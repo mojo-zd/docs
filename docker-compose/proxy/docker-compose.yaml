@@ -1,0 +1,9 @@
+version: '3'
+services:
+  ss-server:
+    container_name: ss-server
+    image: registry.cn-hangzhou.aliyuncs.com/shadow-go/ss-server:alpine
+    ports:
+    - 8388:8388
+    volumes:
+    - /root/docker-compose/proxy/config.json:/etc/config.json

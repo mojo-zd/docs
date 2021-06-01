@@ -1,0 +1,14 @@
+version: '3'
+services:
+  victoria1:
+    image: victoriametrics/victoria-metrics:v1.20.1
+    ports:
+      - 8428:8428
+    volumes:
+      - /root/victoria1-data:/victoria-metrics-data
+  victoria2:
+    image: victoriametrics/victoria-metrics:v1.20.1
+    ports:
+      - 8429:8428
+    volumes:
+      - /root/victoria2-data:/victoria-metrics-data

@@ -1,0 +1,7 @@
+server.host: 0.0.0.0
+server.name: kibana
+server.port: 5601
+elasticsearch.hosts: [ "http://esremote:9200" ]
+monitoring.ui.container.elasticsearch.enabled: true
+elasticsearch.username: kibana_system
+elasticsearch.password: kibanapassword

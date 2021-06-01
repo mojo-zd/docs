@@ -1,0 +1,7 @@
+version: '3'
+services:
+  opentsdb:
+    container_name: opentsdb
+    image: petergrace/opentsdb-docker
+    ports:
+      - 4243:4242

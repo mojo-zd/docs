@@ -1,0 +1,49 @@
+version: '3'
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:6.2.4
+    ports:
+      - 3000:3000
+  victoria:
+    container_name: victoria
+    image: victoriametrics/victoria-metrics:v1.20.1
+    ports:
+      - 8428:8428
+    volumes:
+      - /root/victoria-data:/victoria-metrics-data
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.11.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./rules:/etc/prometheus-rules
+    ports:
+      - 9090:9090
+    depends_on:
+      - victoria
+      - cadvisor
+  alert-manager:
+    container_name: alert-manager
+    image: prom/alertmanager:v0.18.0
+    command:
+      - '--config.file=/alertmanager/alertmanager.yml'
+      - '--storage.path=/data'
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager.yml:/alertmanager/alertmanager.yml
+  cadvisor:
+    container_name: cadvisor
+    image: google/cadvisor:v0.33.0
+    privileged: true
+    ports:
+      - 8180:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /dev/kmsg:/dev/kmsg
+      - /sys/fs/cgroup/cpu,cpuacct:/sys/fs/cgroup/cpu,cpuacct
