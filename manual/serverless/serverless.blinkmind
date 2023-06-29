@@ -1,0 +1,469 @@
+{
+  "rootTopicKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+  "editorRootTopicKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+  "focusKey": "adc2ed4a-b81a-4d04-8b03-a770f3016718",
+  "extData": {
+    "TOPIC_REFERENCE": {
+      "reference": {}
+    }
+  },
+  "topics": [
+    {
+      "key": "178aa6a8-db31-4dd8-a2bb-8f5e4e971299",
+      "parentKey": "e71c5718-1375-4d89-a796-f55212a3007d",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "演进"
+        }
+      ]
+    },
+    {
+      "key": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "parentKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+      "subKeys": [
+        "b2aa22c9-dabd-47f6-9edc-e9b380c5fa23",
+        "771fd20c-eaf8-4978-8e66-d8bac2ce944f",
+        "aada5691-e374-49d1-a78d-c9e1043a2051",
+        "5c6c9974-4f76-4d8c-9a6e-7dfe7cd47871",
+        "ee5f8e36-05ba-40ab-81e8-a6a7bd50ab52",
+        "7c86e09d-1e55-4416-88a0-24568384acc3"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "拓展能力"
+        }
+      ]
+    },
+    {
+      "key": "44b80f8f-f74f-4211-8c51-cca4fc60307e",
+      "parentKey": "e71c5718-1375-4d89-a796-f55212a3007d",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "学习策略"
+        }
+      ]
+    },
+    {
+      "key": "767b0165-97a4-4970-930f-e223cbf773bd",
+      "parentKey": null,
+      "subKeys": [
+        "f288da9a-426c-45e8-821f-05d419225e75",
+        "e71c5718-1375-4d89-a796-f55212a3007d",
+        "478c0660-d34d-4c35-979d-3d113aed0866",
+        "afda53bd-e4af-439a-83b1-1d532a23bf1c"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "Serverless"
+        }
+      ]
+    },
+    {
+      "key": "adc2ed4a-b81a-4d04-8b03-a770f3016718",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "serverless平台"
+        }
+      ]
+    },
+    {
+      "key": "12aa5345-a00a-48df-a7bd-a12f780e2670",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "老服务迁移"
+        }
+      ]
+    },
+    {
+      "key": "1201141a-bc82-4aa7-968f-d935e2e5e4b3",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "流量转发"
+        }
+      ]
+    },
+    {
+      "key": "5208b67a-3f45-4e19-8dd8-f6d1acc68abf",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "运行时"
+        }
+      ]
+    },
+    {
+      "key": "244a5547-a108-4559-b73b-a33acb331f91",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "冷启动"
+        }
+      ]
+    },
+    {
+      "key": "aada5691-e374-49d1-a78d-c9e1043a2051",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "可观测"
+        }
+      ]
+    },
+    {
+      "key": "618b2949-76c6-4a96-92ba-28d10dff27c3",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "扩缩容"
+        }
+      ]
+    },
+    {
+      "key": "408ccc62-0fc5-4833-b25d-932fb335315c",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "生命周期"
+        }
+      ]
+    },
+    {
+      "key": "7c86e09d-1e55-4416-88a0-24568384acc3",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "有状态"
+        }
+      ]
+    },
+    {
+      "key": "5c6c9974-4f76-4d8c-9a6e-7dfe7cd47871",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "存储"
+        }
+      ]
+    },
+    {
+      "key": "87f4af2a-0120-4986-8bd4-4d5a5274982a",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "高级属性"
+        }
+      ]
+    },
+    {
+      "key": "771fd20c-eaf8-4978-8e66-d8bac2ce944f",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "编排"
+        }
+      ]
+    },
+    {
+      "key": "ee5f8e36-05ba-40ab-81e8-a6a7bd50ab52",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "模板"
+        }
+      ]
+    },
+    {
+      "key": "a1d3b725-b03f-4e72-9231-990216abab78",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "一线经验"
+        }
+      ]
+    },
+    {
+      "key": "f288da9a-426c-45e8-821f-05d419225e75",
+      "parentKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+      "subKeys": [
+        "a1d3b725-b03f-4e72-9231-990216abab78",
+        "b02cf63b-a600-47ad-912f-6b67267c8af9",
+        "0da6ffe8-bb68-443a-bcc6-217c5e20666a",
+        "12aa5345-a00a-48df-a7bd-a12f780e2670",
+        "9066240f-99cf-418a-ab53-d0dc20e4e634",
+        "adc2ed4a-b81a-4d04-8b03-a770f3016718"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "实战进阶"
+        }
+      ]
+    },
+    {
+      "key": "6f79d987-267c-4bea-ac60-20d4610b2a08",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "触发器"
+        }
+      ]
+    },
+    {
+      "key": "e71c5718-1375-4d89-a796-f55212a3007d",
+      "parentKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+      "subKeys": [
+        "178aa6a8-db31-4dd8-a2bb-8f5e4e971299",
+        "953ddbad-a3eb-4e41-8166-85c780aec69c",
+        "44b80f8f-f74f-4211-8c51-cca4fc60307e"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "思维构建"
+        }
+      ]
+    },
+    {
+      "key": "0da6ffe8-bb68-443a-bcc6-217c5e20666a",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "智能音箱"
+        }
+      ]
+    },
+    {
+      "key": "56f2bca5-57c2-485b-8b8c-b7ec3b115b63",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "函数调用"
+        }
+      ]
+    },
+    {
+      "key": "7e05f3d1-d7be-4c51-9d64-08c1c3e7e030",
+      "parentKey": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "网络"
+        }
+      ]
+    },
+    {
+      "key": "b2aa22c9-dabd-47f6-9edc-e9b380c5fa23",
+      "parentKey": "afda53bd-e4af-439a-83b1-1d532a23bf1c",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "WEBIDE"
+        }
+      ]
+    },
+    {
+      "key": "b02cf63b-a600-47ad-912f-6b67267c8af9",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "连接器"
+        }
+      ]
+    },
+    {
+      "key": "9066240f-99cf-418a-ab53-d0dc20e4e634",
+      "parentKey": "f288da9a-426c-45e8-821f-05d419225e75",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "核心引擎"
+        }
+      ]
+    },
+    {
+      "key": "478c0660-d34d-4c35-979d-3d113aed0866",
+      "parentKey": "767b0165-97a4-4970-930f-e223cbf773bd",
+      "subKeys": [
+        "408ccc62-0fc5-4833-b25d-932fb335315c",
+        "6f79d987-267c-4bea-ac60-20d4610b2a08",
+        "87f4af2a-0120-4986-8bd4-4d5a5274982a",
+        "244a5547-a108-4559-b73b-a33acb331f91",
+        "618b2949-76c6-4a96-92ba-28d10dff27c3",
+        "5208b67a-3f45-4e19-8dd8-f6d1acc68abf",
+        "1201141a-bc82-4aa7-968f-d935e2e5e4b3",
+        "56f2bca5-57c2-485b-8b8c-b7ec3b115b63",
+        "7e05f3d1-d7be-4c51-9d64-08c1c3e7e030"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "核心技术"
+        }
+      ]
+    },
+    {
+      "key": "953ddbad-a3eb-4e41-8166-85c780aec69c",
+      "parentKey": "e71c5718-1375-4d89-a796-f55212a3007d",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "解决方案"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "readOnly": false,
+    "allowUndo": true,
+    "layoutDir": 2,
+    "theme": {
+      "name": "default",
+      "randomColor": true,
+      "background": "rgb(57,60,65)",
+      "highlightColor": "#50C9CE",
+      "marginH": 60,
+      "marginV": 20,
+      "contentStyle": {
+        "lineHeight": "1.5",
+        "fontSize": "16px"
+      },
+      "linkStyle": {
+        "lineRadius": 5,
+        "lineType": "curve",
+        "lineWidth": "3px"
+      },
+      "rootTopic": {
+        "contentStyle": {
+          "fontSize": "36px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      },
+      "primaryTopic": {
+        "contentStyle": {
+          "fontSize": "24px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      },
+      "normalTopic": {
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px"
+        }
+      }
+    }
+  },
+  "formatVersion": "0.0"
+}

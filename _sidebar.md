@@ -1,0 +1,11 @@
+<!-- docs/_sidebar.md -->
+* [index](/)
+* [kubernetes](/manual/kubernetes/README.md)
+	* [useful plugin](/manual/kubernetes/plugins.md)
+	* [ambitus](/manual/kubernetes/ambitus.md)
+	* [ebpf](/manual/kubernetes/ebpf.md)
+	* [brain](/manual/kubernetes/brain.md)
+* [devops](/manual/devops/readme.md)
+* [golang](/postgres-operator/README.md)
+* [netshoot](/postgres-operator/README.md)
+* [handsome tools](/manual/tools/handsome-tools.md)

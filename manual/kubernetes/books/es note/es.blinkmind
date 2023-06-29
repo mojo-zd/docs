@@ -1,0 +1,328 @@
+{
+  "rootTopicKey": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+  "editorRootTopicKey": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+  "focusKey": "a560a90f-8069-4b5e-8fd1-925421d8a597",
+  "extData": {
+    "TOPIC_REFERENCE": {
+      "reference": {}
+    }
+  },
+  "topics": [
+    {
+      "key": "7a708ae5-6fad-4cc4-b765-a8932236b438",
+      "parentKey": "0732dd57-7d34-40ae-9209-4a3ac8549a90",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "大数据近实时分析引擎"
+        }
+      ]
+    },
+    {
+      "key": "a560a90f-8069-4b5e-8fd1-925421d8a597",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "异常检测"
+        }
+      ]
+    },
+    {
+      "key": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "parentKey": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+      "subKeys": [
+        "4e2ef6bd-bb75-4785-816c-0898b7fe59b5",
+        "8dcdec16-31d5-4344-8f1c-9d2ae10e4638",
+        "1efd7b51-c0b4-4740-9b56-4e78923aa732",
+        "034a09f2-9651-4da8-88e8-d6370533cad6",
+        "6fdbd7d1-024b-4d26-896e-b320dc9d7a31",
+        "3689995a-50bf-41ca-ac2f-abcfdabdd617",
+        "eca05ae0-5aef-4963-b304-31d0815df06a",
+        "26cc65f1-018a-4758-b047-c0026e01fe7c",
+        "f8c671b1-2565-47d8-9fd1-35319506ce5e",
+        "a560a90f-8069-4b5e-8fd1-925421d8a597"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "学习目标"
+        }
+      ]
+    },
+    {
+      "key": "8dcdec16-31d5-4344-8f1c-9d2ae10e4638",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "底层工作原理"
+        }
+      ]
+    },
+    {
+      "key": "6fdbd7d1-024b-4d26-896e-b320dc9d7a31",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "搜索与聚合"
+        }
+      ]
+    },
+    {
+      "key": "26cc65f1-018a-4758-b047-c0026e01fe7c",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "最佳实践"
+        }
+      ]
+    },
+    {
+      "key": "4e2ef6bd-bb75-4785-816c-0898b7fe59b5",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "产品基本功能"
+        }
+      ]
+    },
+    {
+      "key": "0732dd57-7d34-40ae-9209-4a3ac8549a90",
+      "parentKey": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+      "subKeys": [
+        "bd15ca0d-54f2-466b-95db-084c8added5a",
+        "7a708ae5-6fad-4cc4-b765-a8932236b438"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "主要功能"
+        }
+      ]
+    },
+    {
+      "key": "4559a620-72f6-4ea1-b1a2-f07b62cccb6b",
+      "parentKey": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+      "subKeys": [
+        "a95dd893-1d72-4561-a06b-cc8cb2873628",
+        "d3c5d3df-1c27-46bf-ab2a-a99a956c67e7"
+      ],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "产品特性"
+        }
+      ]
+    },
+    {
+      "key": "034a09f2-9651-4da8-88e8-d6370533cad6",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "环境搭建"
+        }
+      ]
+    },
+    {
+      "key": "a95dd893-1d72-4561-a06b-cc8cb2873628",
+      "parentKey": "4559a620-72f6-4ea1-b1a2-f07b62cccb6b",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "高性能"
+        }
+      ]
+    },
+    {
+      "key": "eca05ae0-5aef-4963-b304-31d0815df06a",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "水平扩展及性能优化"
+        }
+      ]
+    },
+    {
+      "key": "bd15ca0d-54f2-466b-95db-084c8added5a",
+      "parentKey": "0732dd57-7d34-40ae-9209-4a3ac8549a90",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "分布式搜索引擎"
+        }
+      ]
+    },
+    {
+      "key": "d3c5d3df-1c27-46bf-ab2a-a99a956c67e7",
+      "parentKey": "4559a620-72f6-4ea1-b1a2-f07b62cccb6b",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "易使用/易扩展"
+        }
+      ]
+    },
+    {
+      "key": "3689995a-50bf-41ca-ac2f-abcfdabdd617",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "数据建模最佳实践"
+        }
+      ]
+    },
+    {
+      "key": "f8c671b1-2565-47d8-9fd1-35319506ce5e",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "可视化分析"
+        }
+      ]
+    },
+    {
+      "key": "1efd7b51-c0b4-4740-9b56-4e78923aa732",
+      "parentKey": "886576fc-f422-40f9-811b-722ba2bbe933",
+      "subKeys": [],
+      "collapse": false,
+      "style": null,
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "容量规划、性能优化、问题诊断、滚动升级"
+        }
+      ]
+    },
+    {
+      "key": "714f6432-d396-4c8a-b381-b3cd981ebb3b",
+      "parentKey": null,
+      "subKeys": [
+        "0732dd57-7d34-40ae-9209-4a3ac8549a90",
+        "4559a620-72f6-4ea1-b1a2-f07b62cccb6b",
+        "886576fc-f422-40f9-811b-722ba2bbe933"
+      ],
+      "collapse": false,
+      "style": "{\"contentStyle\":{\"background\":\"#ffffff\"}}",
+      "blocks": [
+        {
+          "type": "CONTENT",
+          "data": "elasticsearch"
+        }
+      ]
+    }
+  ],
+  "config": {
+    "readOnly": false,
+    "allowUndo": true,
+    "layoutDir": 0,
+    "theme": {
+      "name": "default",
+      "randomColor": true,
+      "background": "rgb(57,60,65)",
+      "highlightColor": "#50C9CE",
+      "marginH": 60,
+      "marginV": 20,
+      "contentStyle": {
+        "lineHeight": "1.5"
+      },
+      "linkStyle": {
+        "lineRadius": 5,
+        "lineType": "curve",
+        "lineWidth": "3px"
+      },
+      "rootTopic": {
+        "contentStyle": {
+          "fontSize": "34px",
+          "borderRadius": "35px",
+          "padding": "16px 18px 16px 18px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px",
+          "lineColor": "rgb(113, 203, 45)"
+        }
+      },
+      "primaryTopic": {
+        "contentStyle": {
+          "borderWidth": "1px",
+          "borderStyle": "solid",
+          "borderRadius": "20px",
+          "fontSize": "17px",
+          "padding": "10px 15px 10px 15px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px",
+          "lineColor": "rgb(113, 203, 45)"
+        }
+      },
+      "normalTopic": {
+        "contentStyle": {
+          "border": "1px solid #e8eaec",
+          "borderRadius": "20px",
+          "fontSize": "17px",
+          "padding": "4px 10px"
+        },
+        "subLinkStyle": {
+          "lineType": "curve",
+          "lineWidth": "3px",
+          "lineColor": "white"
+        }
+      }
+    }
+  },
+  "formatVersion": "0.0"
+}
