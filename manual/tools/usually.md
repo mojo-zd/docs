@@ -8,3 +8,10 @@
 - dstat
 
 ## 如何通过pod调试host node
+
+
+
+
+## go pprof
+
+使用go pprof进行性能分析.

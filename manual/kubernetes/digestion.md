@@ -1,0 +1,13 @@
+- client-go
+  - store: 了解store的使用场景,store如何和fifo进行协同工作. store的indexer、indicas等
+  - fifo: 了解队列工作原理
+  - informer原理及resync机制
+  - workequeue的工作原理及workequeue和fifo的协同工作
+  - request的封装
+  - scheme的重要性及承载的能力
+  - watch机制及重试机制
+  - spdy 协议及使用场景
+
+- apiserver
+  - 聚合apiserver工作原理,如何自定义一个聚合apiserver
+  - apigroup rest接口的注册流程
